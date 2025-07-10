@@ -1,6 +1,6 @@
 services:
   app1:
-    build: .
+    image: willrodrigues/bunrinha-2025
     command: bun cmd/server/main.js
     environment:
       - REDIS_URL=redis://redis:6379
@@ -14,11 +14,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "110MB"
+          cpus: "0.4"
+          memory: "90MB"
 
   app2:
-    build: .
+    image: willrodrigues/bunrinha-2025
     command: bun cmd/server/main.js
     environment:
       - REDIS_URL=redis://redis:6379
@@ -30,11 +30,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5"
-          memory: "110MB"
+          cpus: "0.4"
+          memory: "90MB"
 
   worker1:
-    build: .
+    image: willrodrigues/bunrinha-2025
     command: bun cmd/worker/worker.js
     environment:
       - REDIS_URL=redis://redis:6379
@@ -46,11 +46,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "65MB"
+          cpus: "0.35"
+          memory: "80MB"
 
   worker2:
-    build: .
+    image: willrodrigues/bunrinha-2025
     command: bun cmd/worker/worker.js
     environment:
       - REDIS_URL=redis://redis:6379
@@ -62,8 +62,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.25"
-          memory: "65MB"
+          cpus: "0.15"
+          memory: "70MB"
 
   redis:
     image: redis:7-alpine
@@ -72,10 +72,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.1"
-          memory: "10MB"
+          cpus: "0.2"
+          memory: "20MB"
 
 networks:
   backend:
+    driver: bridge
   payment-processor:
     external: true
