@@ -1,0 +1,47 @@
+services:
+  app1:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - PROCESSOR_DEFAULT=http://payment-processor-default:8080
+      - PROCESSOR_FALLBACK=http://payment-processor-fallback:8080
+    ports:
+      - "9999:9999"
+    networks:
+      - backend
+      - payment-processor
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: "175MB"
+
+  app2:
+    build: .
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - PROCESSOR_DEFAULT=http://payment-processor-default:8080
+      - PROCESSOR_FALLBACK=http://payment-processor-fallback:8080
+    networks:
+      - backend
+      - payment-processor
+    deploy:
+      resources:
+        limits:
+          cpus: "0.75"
+          memory: "175MB"
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: "10MB"
+
+networks:
+  backend:
+  payment-processor:
+    external: true
