@@ -1,6 +1,5 @@
-import { sendToProcessor } from "../core/processor.js";
 import { purgeProcessors } from "../core/admin.js";
-import { savePayment, getSummary, hasCorrelation, registerCorrelation, resetRedis } from "../store/redis.js";
+import { getSummary, resetRedis, enqueuePayment } from "../store/redis.js";
 
 export default function routes(app) {
   app.get("/", () => "Rinha 2025 🐔");
@@ -12,31 +11,16 @@ export default function routes(app) {
     if (
       !correlationId ||
       typeof correlationId !== "string" ||
-      !amount ||
       typeof amount !== "number"
     ) {
       set.status = 400;
       return { error: "Invalid payload" };
     }
 
-    try {
-      const exists = await hasCorrelation(correlationId);
-      if (exists) {
-        set.status = 409;
-        return { error: "Payment already processed" };
-      }
+    await enqueuePayment({ correlationId, amount, requestedAt });
 
-      const processor = await sendToProcessor({ correlationId, amount, requestedAt });
-      await registerCorrelation(correlationId);
-      await savePayment(processor, amount, requestedAt);
-
-      set.status = 202;
-      return { message: "Accepted", processor };
-    } catch (err) {
-      console.error("Failed to process:", err.message);
-      set.status = 500;
-      return { error: "Internal error" };
-    }
+    set.status = 202;
+    return { message: "Queued" };
   });
 
   app.get("/payments-summary", async ({ query }) => {

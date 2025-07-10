@@ -1,7 +1,9 @@
 import Redis from "ioredis";
 
 const redis = new Redis(process.env.REDIS_URL);
+
 const CORR_SET = "set:correlation";
+const QUEUE_KEY = "queue:payments";
 
 export async function savePayment(processor, amount, requestedAt) {
   const key = "payments:" + processor;
@@ -43,5 +45,10 @@ export async function registerCorrelation(correlationId) {
 export async function resetRedis() {
   const keys = await redis.keys("payments:*");
   if (keys.length > 0) await redis.del(...keys);
-  await redis.del("set:correlation");
+  await redis.del(CORR_SET);
+  await redis.del(QUEUE_KEY);
+}
+
+export async function enqueuePayment(payment) {
+  await redis.lpush(QUEUE_KEY, JSON.stringify(payment));
 }
