@@ -1,51 +1,24 @@
 # 🐔 BUNrinha 2025
 
-Implementação do desafio da **Rinha de Backend 2025** utilizando **Go (v1.24)**, com foco em desempenho, concorrência eficiente e fallback resiliente para processadores de pagamento.
+Implementação do desafio da **Rinha de Backend 2025** utilizando **Bun (v1.2)**, com foco em desempenho, usando workers e Redis para processamento assíncrono.
 
 > Repositório oficial da Rinha de Backend: [zanfranceschi/rinha-de-backend-2025](https://github.com/zanfranceschi/rinha-de-backend-2025)
 
 ## 🔥 Descrição
 
-Esta solução implementa uma API HTTP com dois endpoints principais:
+Esta solução implementa uma API HTTP com dois endpoints principais e um para facilitar os testes:
 
-- `POST /payments`: recebe requisições de pagamento e as encaminha para o Payment Processor mais adequado (`default` ou `fallback`), priorizando menor taxa e maior disponibilidade.
+- `POST /payments`: recebe requisições de pagamento e as encaminha para o Payment Processor mais adequado (`default` ou `fallback`), priorizando menor taxa e maior disponibilidade de acordo com health-check e salvando no Redis para rastreio.
 - `GET /payments-summary`: retorna o resumo dos pagamentos processados entre dois períodos (default vs fallback).
-
-Pagamentos são processados com lógica de fallback automática para o segundo processador em caso de falha ou timeout. O sistema utiliza:
-
-- Pool de workers para paralelismo.
-- Persistência em marquivo (com flock).
-
-## 📁 Estrutura
-
-```bash
-rinha2025/
-├── cmd/
-│   └── server/             # Entrypoint do servidor HTTP
-├── internal/
-│   ├── api/                # Handlers da API
-│   ├── client/             # Cliente para processadores de pagamento
-│   ├── core/               # Lógica de negócios (Payment)
-│   ├── store/              # Implementações de persistência (arquivo)
-│   └── worker/             # Pool de workers
-├── go.mod
-└── go.sum
-````
+- `POST /admin/reset`: reseta Redis (queue e data)
 
 ## ⚙️ Tecnologias Utilizadas
 
-* Linguagem: **Go 1.24.4**
-* Web server: **fasthttp**
-* Persistência: **Em memória** (arquivo `.json`)
-* Load balancer: **NGINX**
-* Comunicação com Processadores: HTTP via `fasthttp.Client`
+* Linguagem: **Bun 1.2**
+* Web server: **Elysia**
+* Persistência: **Redis**
+* Comunicação com Processadores: HTTP via `fetch`
 * Orquestração: **Docker Compose**
-
-## 🧠 Estratégia de Processamento
-
-* **Assíncrono com fallback inteligente**: se `SendToDefault` falhar (exceto erro 422), tenta `SendToFallback`.
-* **Registro de sucesso**: apenas pagamentos com status 2XX são registrados na store.
-* **Evita inconsistência**: pagamentos com erro 422 não são registrados em nenhuma store.
 
 ## 🧪 Endpoints
 
@@ -55,6 +28,15 @@ rinha2025/
 {
   "correlationId": "uuid-1234",
   "amount": 19.90
+}
+```
+
+Resposta:
+
+```json
+{
+  "message": "Accepted",
+  "processor": "default"
 }
 ```
 
@@ -77,5 +59,15 @@ Resposta:
     "totalRequests": 2,
     "totalAmount": 39.8
   }
+}
+```
+
+### POST /admin/reset
+
+Resposta:
+
+```json
+{
+	"message": "Reset done"
 }
 ```

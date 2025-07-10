@@ -45,7 +45,8 @@ export async function registerCorrelation(correlationId) {
 export async function resetRedis() {
   const keys = await redis.keys("payments:*");
   if (keys.length > 0) await redis.del(...keys);
-  await redis.del("set:correlation");
+  await redis.del(CORR_SET);
+  await redis.del(QUEUE_KEY);
 }
 
 export async function enqueuePayment(payment) {
