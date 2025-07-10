@@ -1,6 +1,7 @@
 services:
   app1:
     build: .
+    command: bun cmd/server/main.js
     environment:
       - REDIS_URL=redis://redis:6379
       - PROCESSOR_DEFAULT=http://payment-processor-default:8080
@@ -13,11 +14,12 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.75"
-          memory: "175MB"
+          cpus: "0.5"
+          memory: "110MB"
 
   app2:
     build: .
+    command: bun cmd/server/main.js
     environment:
       - REDIS_URL=redis://redis:6379
       - PROCESSOR_DEFAULT=http://payment-processor-default:8080
@@ -28,8 +30,40 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.75"
-          memory: "175MB"
+          cpus: "0.5"
+          memory: "110MB"
+
+  worker1:
+    build: .
+    command: bun cmd/worker/worker.js
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - PROCESSOR_DEFAULT=http://payment-processor-default:8080
+      - PROCESSOR_FALLBACK=http://payment-processor-fallback:8080
+    networks:
+      - backend
+      - payment-processor
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "65MB"
+
+  worker2:
+    build: .
+    command: bun cmd/worker/worker.js
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - PROCESSOR_DEFAULT=http://payment-processor-default:8080
+      - PROCESSOR_FALLBACK=http://payment-processor-fallback:8080
+    networks:
+      - backend
+      - payment-processor
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "65MB"
 
   redis:
     image: redis:7-alpine
