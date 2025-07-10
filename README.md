@@ -68,6 +68,6 @@ Resposta:
 
 ```json
 {
-	"message": "Reset done"
+  "message": "Reset done"
 }
 ```
